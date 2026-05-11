@@ -1,0 +1,38 @@
+version: '3'
+
+tasks:
+  cluster:create:
+    cmds:
+      - kind create cluster --config=./infra/kind-config.yaml --name tetragon-lab
+    silent: true
+    desc: "Create a Kubernetes cluster using Kind"
+  cluster:delete:
+    cmds:
+      - kind delete cluster --name tetragon-lab
+    silent: true
+    desc: "Delete the Kubernetes cluster created by Kind"
+
+  install-cilium:
+    desc: "Install Cilium with L7 and Gateway API"
+    cmds:
+      - cilium install --set gatewayAPI.enabled=true --set kubeProxyReplacement=true --set hostServices.enabled=true --set externalIPs.enabled=true
+      - cilium status --wait
+  deploy-keycloak:
+    desc: "Deploy Keycloak"
+    cmds:
+      - kubectl apply -f infra/k8s/keycloak.yaml
+      - kubectl wait --for=condition=ready pod -l app=keycloak --timeout=90s
+
+  deploy-redis:
+    desc: "Install Redis HA using CloudPirates Chart"
+    cmds:
+      - helm upgrade --install my-redis oci://registry-1.docker.io/cloudpirates/redis 
+        -f infra/helm/redis-values.yaml
+      - kubectl wait --for=condition=ready pod -l app.kubernetes.io/name=redis --timeout=120s
+
+  deploy-keycloak:
+    desc: "Install Keycloak using Bitnami Chart"
+    cmds:
+      - helm upgrade --install my-keycloak oci://registry-1.docker.io/bitnamicharts/keycloak 
+        -f infra/helm/keycloak-values.yaml
+      - kubectl wait --for=condition=ready pod -l app.kubernetes.io/name=keycloak --timeout=150s

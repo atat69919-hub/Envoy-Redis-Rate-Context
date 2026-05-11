@@ -1,0 +1,12 @@
+auth:
+  adminUser: admin
+  adminPassword: adminpassword
+production: false 
+httpEnabled: true
+proxyHeaders: "x-forwarded"
+postgresql:
+  enabled: true
+  persistence:
+    size: 5Gi
+service:
+  type: ClusterIP
