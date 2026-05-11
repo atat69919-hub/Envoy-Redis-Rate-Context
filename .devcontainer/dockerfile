@@ -3,7 +3,9 @@ FROM ubuntu:24.04
 ENV DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    sudo curl wget git ca-certificates jq iproute2 tcpdump dnsutils net-tools bash-completion tar gzip \
+    sudo curl wget git ca-certificates jq iproute2 tcpdump dnsutils net-tools \
+    bash-completion tar gzip build-essential \
+    python3 python3-pip python3-venv python3-dev \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 RUN ARCH=$(uname -m | sed -e 's/x86_64/amd64/' -e 's/aarch64/arm64/') \
@@ -25,7 +27,7 @@ RUN GOOS=$(uname -s | tr '[:upper:]' '[:lower:]') \
 
 
 RUN curl -1sLf 'https://dl.cloudsmith.io/public/task/task/setup.deb.sh' | sudo -E bash && apt update && apt upgrade -y
-RUN apt install task
+RUN apt install task 
 
 RUN curl -L https://github.com/cilium/tetragon/releases/latest/download/tetra-linux-amd64.tar.gz | tar -xz
 RUN mv tetra /usr/local/bin
