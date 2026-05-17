@@ -44,6 +44,11 @@ tasks:
     cmds:
       - helm upgrade --install keycloak oci://registry-1.docker.io/cloudpirates/keycloak -f infra/keycloak-values.yaml
       - kubectl get pods -w
+  keycloak:port-forward:
+    silent: true
+    cmds:
+     - echo port forwarding 8080
+     - kubectl port-forward svc/keycloak 8080:8080 --address 0.0.0.0 
   keycloak:uninstall:
     cmds:
       - helm uninstall keycloak
@@ -51,6 +56,7 @@ tasks:
   deploy-all:
     desc: "Apply all Kubernetes manifests"
     cmds:
+      - kubectl apply -f server/django-secret.yaml
       - kubectl apply -f infra/k8s/django-configmap.yaml
       - kubectl apply -f infra/k8s/django-deployment.yaml
       - kubectl apply -f infra/k8s/django-service.yaml

@@ -1,6 +1,6 @@
 import os
 from keycloak import KeycloakAdmin
-
+import base64
 # --- CONFIGURATION ---
 KC_URL = "http://localhost:8080/"
 DJANGO_URL = "http://localhost:8000/"
@@ -81,8 +81,20 @@ def setup():
         print("\nCopy this secret into your docker-compose.yml for OIDC_RP_CLIENT_SECRET")
 
 
-        with open("secret.txt", "w") as file:
-            file.write(f"{secret}\n")
+        secret_bytes = secret.encode('utf-8')
+        base64_secret = base64.b64encode(secret_bytes).decode('utf-8')
+
+        secret_yaml = f"""apiVersion: v1
+kind: Secret
+metadata:
+  name: django-secret
+type: Opaque
+data:
+  OIDC_RP_CLIENT_SECRET: {base64_secret}
+"""
+
+        with open("django-secret.yaml", "w") as file:
+            file.write(secret_yaml)
 
     except Exception as e:
         print(f"[!] Error: {str(e)}")
