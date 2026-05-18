@@ -18,5 +18,5 @@ spec:
         type: PathPrefix
         value: /resources
     backendRefs:
-    - name: my-keycloak
+    - name: keycloak.default.svc.cluster.local
       port: 8080

@@ -28,7 +28,11 @@ tasks:
           --set gatewayAPI.enabled=true 
           --set hostServices.enabled=true 
           --set externalIPs.enabled=true
+          --set l2announcements.enabled=true
+          --set devices=eth0 
         - cilium status --wait
+        - kubectl apply -f infra/l2policy.yaml
+        - kubectl apply -f infra/pool.yaml
 
   python-env:
     cmds:

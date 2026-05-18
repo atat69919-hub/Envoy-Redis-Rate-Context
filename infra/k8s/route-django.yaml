@@ -11,12 +11,12 @@ spec:
     - path:
         type: PathPrefix
         value: /
-    filters:
-    - type: ExtensionRef
-      extensionRef:
-        group: cilium.io
-        kind: CiliumClusterwideEnvoyConfig
-        name: ext-authz-idp-config
+    # filters:
+    # # - type: ExtensionRef
+    # #   extensionRef:
+    # #     group: cilium.io
+    # #     kind: CiliumClusterwideEnvoyConfig
+    # #     name: ext-authz-idp-config
     backendRefs:
-    - name: django-service
+    - name: django-service.default.svc.cluster.local
       port: 80
