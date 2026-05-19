@@ -56,6 +56,12 @@ tasks:
   keycloak:uninstall:
     cmds:
       - helm uninstall keycloak
+  oauth2-proxy:deploy:
+    desc: "Deploy OAuth2-Proxy using Helm"
+    cmds:
+      - helm repo add oauth2-proxy https://oauth2-proxy.github.io/manifests
+      - helm repo update
+      - helm upgrade --install oauth2-proxy oauth2-proxy/oauth2-proxy -f infra/oauth2-proxy-values.yaml
 
   deploy-all:
     desc: "Apply all Kubernetes manifests"

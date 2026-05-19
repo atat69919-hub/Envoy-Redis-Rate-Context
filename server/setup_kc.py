@@ -90,7 +90,7 @@ metadata:
   name: django-secret
 type: Opaque
 data:
-  OIDC_RP_CLIENT_SECRET: {base64_secret}
+  CLIENT_SECRET: {base64_secret}
 """
 
         with open("django-secret.yaml", "w") as file:

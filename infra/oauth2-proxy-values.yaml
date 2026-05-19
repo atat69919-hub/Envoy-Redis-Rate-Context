@@ -1,0 +1,27 @@
+config:
+  clientID: "django-client"
+  cookieSecret: "OEQtQkFvSDR4V19oelNHTWZCQjVoTlV1X0ZtM3g1cXU="
+
+extraEnv:
+  - name: OAUTH2_PROXY_CLIENT_SECRET
+    valueFrom:
+      secretKeyRef:
+        name: django-secret  
+        key: CLIENT_SECRET
+  
+extraArgs:
+  provider: "oidc"
+  oidc-issuer-url: "http://172.18.255.200/realms/myrealm"
+  cookie-secure: "false"
+  cookie-domain: ""
+  pass-access-token: "true"
+  pass-authorization-header: "true"
+  set-authorization-header: "true"
+  set-xauthrequest: "true"
+  upstream: "static://200"
+  skip-provider-button: "true"
+  email-domain: "*"
+
+service:
+  type: ClusterIP
+  portNumber: 4180

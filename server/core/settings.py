@@ -17,7 +17,6 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
-    'mozilla_django_oidc',
     'rate_limiter',
     'accounts',
 ]
@@ -29,6 +28,7 @@ MIDDLEWARE = [
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'accounts.edge_auth.EdgeAuthMiddleware',  
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
@@ -88,24 +88,12 @@ STATIC_ROOT = BASE_DIR / 'staticfiles'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 AUTHENTICATION_BACKENDS = (
-    'accounts.auth_backends.CustomOIDCBackend',
     'django.contrib.auth.backends.ModelBackend',
 )
 
-OIDC_RP_CLIENT_ID = config('OIDC_RP_CLIENT_ID')
-OIDC_RP_CLIENT_SECRET = config('OIDC_RP_CLIENT_SECRET')
-OIDC_OP_AUTHORIZATION_ENDPOINT = config('OIDC_OP_AUTHORIZATION_ENDPOINT')
-OIDC_OP_TOKEN_ENDPOINT = config('OIDC_OP_TOKEN_ENDPOINT')
-OIDC_OP_USER_ENDPOINT = config('OIDC_OP_USER_ENDPOINT')
-OIDC_OP_JWKS_ENDPOINT = config('OIDC_OP_JWKS_ENDPOINT')
-
-OIDC_CREATE_USER = True
-OIDC_RP_SIGN_ALGO = 'RS256'
-LOGIN_REDIRECT_URL = config("LOGIN_REDIRECT_URL","/")
-LOGOUT_REDIRECT_URL = config("LOGOUT_REDIRECT_URL","")
-
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
-        'mozilla_django_oidc.contrib.drf.OIDCAuthentication',
+        'rest_framework.authentication.SessionAuthentication',
+        'rest_framework.authentication.BasicAuthentication',
     ),
 }

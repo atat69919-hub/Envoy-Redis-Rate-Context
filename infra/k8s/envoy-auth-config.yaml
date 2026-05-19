@@ -2,39 +2,53 @@ apiVersion: cilium.io/v2
 kind: CiliumClusterwideEnvoyConfig
 metadata:
   name: ext-authz-idp-config
+
 spec:
   resources:
+
+  # Envoy cluster configuration for oauth2-proxy
   - "@type": type.googleapis.com/envoy.config.cluster.v3.Cluster
-    name: keycloak-cluster
+    name: oauth2-proxy-cluster
     connect_timeout: 5s
     type: STRICT_DNS
     lb_policy: ROUND_ROBIN
+
     load_assignment:
-      cluster_name: keycloak-cluster
+      cluster_name: oauth2-proxy-cluster
       endpoints:
       - lb_endpoints:
         - endpoint:
             address:
               socket_address:
-                address: keycloak.default.svc.cluster.local
-                port_value: 8080
+                # Points to the oauth2-proxy Kubernetes Service
+                address: oauth2-proxy.default.svc.cluster.local
+                port_value: 4180
+
+  # External authorization filter configuration
   - "@type": type.googleapis.com/envoy.config.core.v3.TypedExtensionConfig
     name: ext-authz-filter
+
     typed_config:
       "@type": type.googleapis.com/envoy.extensions.filters.http.ext_authz.v3.ExtAuthz
       transport_api_version: V3
+
       http_service:
         server_uri:
-          uri: http://keycloak-cluster
-          cluster: keycloak-cluster
+          uri: http://oauth2-proxy-cluster
+          cluster: oauth2-proxy-cluster
           timeout: 5s
+
+        # Headers forwarded from the client request to oauth2-proxy
         authorization_request:
           allowed_headers:
             patterns:
             - exact: cookie
             - exact: authorization
+
+        # Headers returned by oauth2-proxy and forwarded upstream to Django
         authorization_response:
           allowed_upstream_headers:
             patterns:
-            - exact: x-auth-user
-            - exact: x-auth-groups
+            - exact: authorization        # Contains the JWT token
+            - exact: x-auth-request-user  # Contains the username
+            - exact: x-auth-request-email # Contains the user email
