@@ -30,6 +30,9 @@ tasks:
           --set externalIPs.enabled=true
           --set l2announcements.enabled=true
           --set devices=eth0 
+          --set hubble.enabled=true 
+          --set hubble.relay.enabled=true 
+          --set hubble.ui.enabled=true 
         - cilium status --wait
         - kubectl apply -f infra/l2policy.yaml
         - kubectl apply -f infra/pool.yaml
@@ -72,7 +75,7 @@ tasks:
       - kubectl apply -f infra/k8s/django-deployment.yaml
       - kubectl apply -f infra/k8s/django-service.yaml
       - kubectl apply -f infra/k8s/gateway.yaml
-      - kubectl apply -f infra/k8s/envoy-auth-config.yaml
+      #- kubectl apply -f infra/k8s/envoy-auth-config.yaml
       - kubectl apply -f infra/k8s/route-keycloak.yaml
       - kubectl apply -f infra/k8s/route-django.yaml
 

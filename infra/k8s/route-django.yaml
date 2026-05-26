@@ -12,11 +12,20 @@ spec:
         type: PathPrefix
         value: /
     filters:
-    - type: ExtensionRef
-      extensionRef:
-        group: cilium.io
-        kind: CiliumClusterwideEnvoyConfig
-        name: ext-authz-idp-config
+    - type: ExternalAuth
+      externalAuth:
+        protocol: HTTP
+        backendRef:
+          name: oauth2-proxy
+          port: 4180
+        http:
+          allowedHeaders:
+            - cookie
+            - authorization
+          allowedResponseHeaders:
+            - authorization
+            - x-auth-request-user
+            - x-auth-request-email
     backendRefs:
     - name: django-service
       port: 80

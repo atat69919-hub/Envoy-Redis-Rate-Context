@@ -1,34 +1,34 @@
 apiVersion: cilium.io/v2
-kind: CiliumClusterwideEnvoyConfig
+kind: CiliumEnvoyConfig
 metadata:
   name: ext-authz-idp-config
+  namespace: default
 spec:
   backendServices:
+    - name: django-service
+      namespace: default
+      number:
+        - "80"
     - name: oauth2-proxy
       namespace: default
       number:
         - "4180"
+    - name: keycloak
+      namespace: default
+      number:
+        - "8080"
+  services:
+    - name: cilium-gateway-my-gateway
+      namespace: default
+      ports:
+        - 80
   resources:
-  - "@type": type.googleapis.com/envoy.config.cluster.v3.Cluster
-    name: "k8s/default/oauth2-proxy:4180"
-    connect_timeout: 5s
-    type: LOGICAL_DNS
-    lb_policy: ROUND_ROBIN
-    load_assignment:
-      cluster_name: "k8s/default/oauth2-proxy:4180"
-      endpoints:
-        - lb_endpoints:
-            - endpoint:
-                address:
-                  socket_address:
-                    address: oauth2-proxy.default.svc.cluster.local
-                    port_value: 4180
   - "@type": type.googleapis.com/envoy.config.listener.v3.Listener
-    name: cilium-gateway-default-my-gateway
+    name: my-custom-auth-listener
     address:
       socket_address:
         address: 0.0.0.0
-        port_value: 80
+        port_value: 10080
     filter_chains:
       - filters:
           - name: envoy.filters.network.http_connection_manager
@@ -39,7 +39,7 @@ spec:
                 config_source:
                   ads: {}
                   resource_api_version: V3
-                route_config_name: cilium-gateway-default-my-gateway
+                route_config_name: listener-secure
               http_filters:
                 - name: envoy.filters.http.ext_authz
                   typed_config:
@@ -48,7 +48,7 @@ spec:
                     failure_mode_allow: false
                     http_service:
                       server_uri:
-                        uri: http://cluster.local
+                        uri: http://oauth2-proxy.default.svc.cluster.local
                         cluster: "k8s/default/oauth2-proxy:4180"
                         timeout: 5s
                       authorization_request:
@@ -65,3 +65,67 @@ spec:
                 - name: envoy.filters.http.router
                   typed_config:
                     "@type": type.googleapis.com/envoy.extensions.filters.http.router.v3.Router
+  - "@type": type.googleapis.com/envoy.config.route.v3.RouteConfiguration
+    name: listener-secure
+    virtual_hosts:
+      - name: gateway-vhost
+        domains: ["*"]
+        routes:
+          - match:
+              prefix: "/auth"
+            route:
+              cluster: "k8s/default/keycloak:8080"
+          - match:
+              prefix: "/realms"
+            route:
+              cluster: "k8s/default/keycloak:8080"
+          - match:
+              prefix: "/resources"
+            route:
+              cluster: "k8s/default/keycloak:8080"
+          - match:
+              prefix: "/"
+            route:
+              cluster: "k8s/default/django-service:80"
+  - "@type": type.googleapis.com/envoy.config.cluster.v3.Cluster
+    name: "k8s/default/django-service:80"
+    connect_timeout: 5s
+    type: LOGICAL_DNS
+    lb_policy: ROUND_ROBIN
+    load_assignment:
+      cluster_name: "k8s/default/django-service:80"
+      endpoints:
+        - lb_endpoints:
+            - endpoint:
+                address:
+                  socket_address:
+                    address: django-service.default.svc.cluster.local
+                    port_value: 80
+  - "@type": type.googleapis.com/envoy.config.cluster.v3.Cluster
+    name: "k8s/default/oauth2-proxy:4180"
+    connect_timeout: 5s
+    type: LOGICAL_DNS
+    lb_policy: ROUND_ROBIN
+    load_assignment:
+      cluster_name: "k8s/default/oauth2-proxy:4180"
+      endpoints:
+        - lb_endpoints:
+            - endpoint:
+                address:
+                  socket_address:
+                    address: oauth2-proxy.default.svc.cluster.local
+                    port_value: 4180
+  - "@type": type.googleapis.com/envoy.config.cluster.v3.Cluster
+    name: "k8s/default/keycloak:8080"
+    connect_timeout: 5s
+    type: LOGICAL_DNS
+    lb_policy: ROUND_ROBIN
+    load_assignment:
+      cluster_name: "k8s/default/keycloak:8080"
+      endpoints:
+        - lb_endpoints:
+            - endpoint:
+                address:
+                  socket_address:
+                    address: keycloak.default.svc.cluster.local
+                    port_value: 8080
