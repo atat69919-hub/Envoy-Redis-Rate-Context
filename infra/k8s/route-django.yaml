@@ -1,3 +1,21 @@
+Hey Martin, 
+
+Quick update: We successfully upgraded our Gateway API CRDs to the `monthly-2026.05` experimental release to test the newly merged Native `ExternalAuth` HTTPRoute filter (GEP-1494). 
+
+However, we are hitting a strict decoding error when trying to apply the inline filter within the `HTTPRoute` manifest. 
+
+When we try to define it, the API server rejects it with:
+`strict decoding error: unknown field "spec.rules[0].filters[0].externalAuth"` (or similar errors pointing to `spec.rules[0].filters[0].externalAuth.service`).
+
+Could you please share the exact, correct YAML schema/structure for this new native `ExternalAuth` filter inside the `HTTPRoute` spec for the `monthly-2026.05` release? 
+
+Specifically:
+1. What is the correct field name inside `spec.rules[0].filters`? Is it `externalAuth` or `extAuth` or something else?
+2. What are the correct keys for defining the backend service reference (e.g., `backendRef` or `service`) and the allowed HTTP headers (e.g., `allowedHeaders` or `allowedRequestHeaders`)?
+
+Here is the manifest we tried to apply:
+
+```yaml
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
 metadata:
@@ -11,21 +29,6 @@ spec:
     - path:
         type: PathPrefix
         value: /
-    filters:
-    - type: ExternalAuth
-      externalAuth:
-        protocol: HTTP
-        backendRef:
-          name: oauth2-proxy
-          port: 4180
-        http:
-          allowedHeaders:
-            - cookie
-            - authorization
-          allowedResponseHeaders:
-            - authorization
-            - x-auth-request-user
-            - x-auth-request-email
     backendRefs:
     - name: django-service
       port: 80
